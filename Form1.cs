@@ -19,6 +19,10 @@ namespace Laptimer1
     {
         RFIDReader rfid3;
         Dictionary<String, Tag> tagsdict;
+
+        Dictionary<String, Lap> openlapsbytag;
+        Dictionary<String, List<Lap>> finishedlapsbytag;
+
         private RadioButton[] antennas = new RadioButton[10];
 
         private UpdateRead UpdateReadHandler = null;
@@ -38,10 +42,14 @@ namespace Laptimer1
             rfid3 = new RFIDReader(hostname, 5084, 2000);
 
             tagsdict = new Dictionary<String, Tag>();
+            openlapsbytag = new Dictionary<string, Lap>();
+            finishedlapsbytag = new Dictionary<string, List<Lap>>();
+
+
+
 
 
             rfid3.Connect();
-
 
             listBox1.Items.Add(String.Format("FirwareVersion={0}", rfid3.ReaderCapabilities.FirwareVersion));
 
@@ -85,17 +93,40 @@ namespace Laptimer1
                 }
                 if (eventData.TagData.TagEvent == TAG_EVENT.NEW_TAG_VISIBLE || eventData.TagData.TagEvent == TAG_EVENT.TAG_BACK_TO_VISIBILITY)
                 {
+                    if (checkBox1.Checked)
+                    {
+                        var json = JsonConvert.SerializeObject(tmptag);
+                        var data = new StringContent(json, Encoding.UTF8, "application/json");
 
-                    var json = JsonConvert.SerializeObject(tmptag);
-                    var data = new StringContent(json, Encoding.UTF8, "application/json");
+                        var url = textBox_laptimeService.Text + "/lap/" + tmptag.TagId;
+                        var client = new HttpClient();
 
-                    var url = textBox_laptimeService.Text + "/lap/" + tmptag.TagId;
-                    var client = new HttpClient();
+                        var response = await client.PostAsync(url, data);
+                        var result = await response.Content.ReadAsStringAsync();
+                    }
 
-                    var response = await client.PostAsync(url, data);
-                    var result = await response.Content.ReadAsStringAsync();
+                    if (openlapsbytag.ContainsKey(tmptag.TagId))
+                    {
+                        Lap tmplap = openlapsbytag[tmptag.TagId];
+                        tmplap.end = tmptag.TagSeenTime;
+                        if (!finishedlapsbytag.ContainsKey(tmplap.tagId))
+                        {
+                            List<Lap> newlaplist = new List<Lap>();
+                            newlaplist.Add(tmplap);
+                            finishedlapsbytag.Add(tmplap.tagId, newlaplist);
+                        }
+                        else
+                        {
+                            finishedlapsbytag[tmplap.tagId].Add(tmplap);
+                        }
+                        openlapsbytag.Remove(tmplap.tagId);
+                        comboBox1.DataSource = new BindingSource(finishedlapsbytag, null);
+                        comboBox1.DisplayMember = "Key";
+                        comboBox1.ValueMember = "Key";
+                    }
 
-
+                    Lap newlap = new Lap(tmptag.TagId, tmptag.TagSeenTime);
+                    openlapsbytag.Add(newlap.tagId, newlap);
 
 
                 }
@@ -145,6 +176,18 @@ namespace Laptimer1
                 }
             }
         }
+
+        private void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (comboBox1.SelectedValue.GetType() == typeof(String))
+            {
+                String test = comboBox1.SelectedValue.ToString();
+                string ugh = "fgfgfg";
+                objectListView2.SetObjects(finishedlapsbytag[comboBox1.SelectedValue.ToString()]);
+
+            }
+
+        }
     }
     class Tag
     {
@@ -160,5 +203,23 @@ namespace Laptimer1
 
         public DateTime TagSeenTime { get; set; }
 
+    }
+
+    class Lap
+    {
+        public Lap(string tagId, DateTime start)
+        {
+            this.tagId = tagId;
+            this.start = start;
+        }
+        public string tagId { get; set; }
+        public DateTime start { get; set; }
+        public DateTime end { get; set; }
+
+        public TimeSpan laptime()
+        {
+            TimeSpan laptime = this.end - this.start;
+            return laptime;
+        }
     }
 }

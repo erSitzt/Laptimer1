@@ -41,7 +41,15 @@ namespace Laptimer1
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
             this.textBox_laptimeService = new System.Windows.Forms.TextBox();
             this.label1 = new System.Windows.Forms.Label();
+            this.checkBox1 = new System.Windows.Forms.CheckBox();
+            this.comboBox1 = new System.Windows.Forms.ComboBox();
+            this.objectListView2 = new BrightIdeasSoftware.ObjectListView();
+            this.olvColumn4 = ((BrightIdeasSoftware.OLVColumn)(new BrightIdeasSoftware.OLVColumn()));
+            this.olvColumn5 = ((BrightIdeasSoftware.OLVColumn)(new BrightIdeasSoftware.OLVColumn()));
+            this.olvColumn6 = ((BrightIdeasSoftware.OLVColumn)(new BrightIdeasSoftware.OLVColumn()));
+            this.olvColumn7 = ((BrightIdeasSoftware.OLVColumn)(new BrightIdeasSoftware.OLVColumn()));
             ((System.ComponentModel.ISupportInitialize)(this.objectListView1)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.objectListView2)).BeginInit();
             this.SuspendLayout();
             // 
             // listBox1
@@ -68,7 +76,7 @@ namespace Laptimer1
             this.listBox3.ItemHeight = 20;
             this.listBox3.Location = new System.Drawing.Point(13, 13);
             this.listBox3.Name = "listBox3";
-            this.listBox3.Size = new System.Drawing.Size(759, 544);
+            this.listBox3.Size = new System.Drawing.Size(759, 284);
             this.listBox3.TabIndex = 2;
             // 
             // timer1
@@ -88,9 +96,9 @@ namespace Laptimer1
             this.olvColumn3});
             this.objectListView1.Cursor = System.Windows.Forms.Cursors.Default;
             this.objectListView1.HideSelection = false;
-            this.objectListView1.Location = new System.Drawing.Point(868, 160);
+            this.objectListView1.Location = new System.Drawing.Point(795, 13);
             this.objectListView1.Name = "objectListView1";
-            this.objectListView1.Size = new System.Drawing.Size(522, 375);
+            this.objectListView1.Size = new System.Drawing.Size(749, 375);
             this.objectListView1.TabIndex = 3;
             this.objectListView1.UseCompatibleStateImageBehavior = false;
             this.objectListView1.View = System.Windows.Forms.View.Details;
@@ -135,11 +143,70 @@ namespace Laptimer1
             this.label1.TabIndex = 6;
             this.label1.Text = "Laptime Service";
             // 
+            // checkBox1
+            // 
+            this.checkBox1.AutoSize = true;
+            this.checkBox1.Location = new System.Drawing.Point(474, 1087);
+            this.checkBox1.Name = "checkBox1";
+            this.checkBox1.Size = new System.Drawing.Size(78, 24);
+            this.checkBox1.TabIndex = 7;
+            this.checkBox1.Text = "Active";
+            this.checkBox1.UseVisualStyleBackColor = true;
+            // 
+            // comboBox1
+            // 
+            this.comboBox1.FormattingEnabled = true;
+            this.comboBox1.Location = new System.Drawing.Point(13, 435);
+            this.comboBox1.Name = "comboBox1";
+            this.comboBox1.Size = new System.Drawing.Size(404, 28);
+            this.comboBox1.TabIndex = 8;
+            this.comboBox1.SelectedIndexChanged += new System.EventHandler(this.comboBox1_SelectedIndexChanged);
+            // 
+            // objectListView2
+            // 
+            this.objectListView2.AllColumns.Add(this.olvColumn4);
+            this.objectListView2.AllColumns.Add(this.olvColumn5);
+            this.objectListView2.AllColumns.Add(this.olvColumn6);
+            this.objectListView2.AllColumns.Add(this.olvColumn7);
+            this.objectListView2.CellEditUseWholeCell = false;
+            this.objectListView2.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
+            this.olvColumn4,
+            this.olvColumn5,
+            this.olvColumn6,
+            this.olvColumn7});
+            this.objectListView2.Cursor = System.Windows.Forms.Cursors.Default;
+            this.objectListView2.HideSelection = false;
+            this.objectListView2.Location = new System.Drawing.Point(795, 421);
+            this.objectListView2.Name = "objectListView2";
+            this.objectListView2.Size = new System.Drawing.Size(749, 193);
+            this.objectListView2.TabIndex = 9;
+            this.objectListView2.UseCompatibleStateImageBehavior = false;
+            this.objectListView2.View = System.Windows.Forms.View.Details;
+            // 
+            // olvColumn4
+            // 
+            this.olvColumn4.AspectName = "tagId";
+            // 
+            // olvColumn5
+            // 
+            this.olvColumn5.AspectName = "start";
+            // 
+            // olvColumn6
+            // 
+            this.olvColumn6.AspectName = "end";
+            // 
+            // olvColumn7
+            // 
+            this.olvColumn7.AspectName = "laptime";
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1556, 1138);
+            this.Controls.Add(this.objectListView2);
+            this.Controls.Add(this.comboBox1);
+            this.Controls.Add(this.checkBox1);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.textBox_laptimeService);
             this.Controls.Add(this.statusStrip1);
@@ -151,6 +218,7 @@ namespace Laptimer1
             this.Text = "Form1";
             this.Load += new System.EventHandler(this.Form1_Load);
             ((System.ComponentModel.ISupportInitialize)(this.objectListView1)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.objectListView2)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -169,6 +237,13 @@ namespace Laptimer1
         private System.Windows.Forms.StatusStrip statusStrip1;
         private System.Windows.Forms.TextBox textBox_laptimeService;
         private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.CheckBox checkBox1;
+        private System.Windows.Forms.ComboBox comboBox1;
+        private BrightIdeasSoftware.ObjectListView objectListView2;
+        private BrightIdeasSoftware.OLVColumn olvColumn4;
+        private BrightIdeasSoftware.OLVColumn olvColumn5;
+        private BrightIdeasSoftware.OLVColumn olvColumn6;
+        private BrightIdeasSoftware.OLVColumn olvColumn7;
     }
 }
 
