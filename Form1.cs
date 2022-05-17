@@ -45,13 +45,9 @@ namespace Laptimer1
             openlapsbytag = new Dictionary<string, Lap>();
             finishedlapsbytag = new Dictionary<string, List<Lap>>();
 
-
-
-
-
             rfid3.Connect();
+            toolStripStatusLabel1.Text = String.Format("FirwareVersion={0}", rfid3.ReaderCapabilities.FirwareVersion);
 
-            listBox1.Items.Add(String.Format("FirwareVersion={0}", rfid3.ReaderCapabilities.FirwareVersion));
 
             TriggerInfo triggerInfo = new TriggerInfo();
             triggerInfo.EnableTagEventReport = true;
@@ -71,12 +67,14 @@ namespace Laptimer1
             rfid3.Events.AttachTagDataWithReadEvent = true;
 
             rfid3.Actions.Inventory.Perform(null, triggerInfo, null);
-            timer1.Start();
+
         }
         private delegate void Update();
         public void addlist(string item)
         {
             listBox2.Invoke(new Update(() => listBox2.Items.Add(item)));
+            listBox2.SelectedIndex = listBox2.Items.Count - 1;
+            listBox2.SelectedIndex = -1;
         }
         private delegate void UpdateRead(Events.ReadEventData eventData);
         private async void  myUpdateRead(Events.ReadEventData eventData)
@@ -120,9 +118,20 @@ namespace Laptimer1
                             finishedlapsbytag[tmplap.tagId].Add(tmplap);
                         }
                         openlapsbytag.Remove(tmplap.tagId);
-                        comboBox1.DataSource = new BindingSource(finishedlapsbytag, null);
-                        comboBox1.DisplayMember = "Key";
-                        comboBox1.ValueMember = "Key";
+
+                        dataListView1.DataSource = new BindingSource(finishedlapsbytag, null);
+                        foreach (BrightIdeasSoftware.OLVColumn column in dataListView1.AllColumns)
+                        {
+                            column.Groupable = false;
+                            if (column.Name.Equals("Value"))
+                            {
+                                column.IsVisible = false;
+                            }
+                        }
+                        dataListView1.RebuildColumns();
+                        dataListView1.AutoResizeColumns();
+
+
                     }
 
                     Lap newlap = new Lap(tmptag.TagId, tmptag.TagSeenTime);
@@ -134,7 +143,8 @@ namespace Laptimer1
             else
             {
                 Symbol.RFID3.TagData[] tagData = rfid3.Actions.GetReadTags(1000);
-                objectListView1.SetObjects(tagData);
+                // rausgenommen
+                //objectListView1.SetObjects(tagData);
             }
             
 
@@ -163,30 +173,14 @@ namespace Laptimer1
 
         }
 
-        private void timer1_Tick(object sender, EventArgs e)
+        private void dataListView1_SelectedIndexChanged(object sender, EventArgs e)
         {
-            objectListView1.BuildList();
-            listBox3.Items.Clear();
-            TagData[] seenTags = rfid3.Actions.GetReadTags(1000);
-            if (seenTags != null)
+            if (dataListView1.SelectedItem != null)
             {
-                for (int nIndex = 0; nIndex < seenTags.Length; nIndex++)
-                {
-                    listBox3.Items.Add(String.Format("{0} : Seen : {1}", seenTags[nIndex].TagID, seenTags[nIndex].TagSeenCount));
-                }
+                var tagid = dataListView1.SelectedItem.Text;
+                objectListView2.SetObjects(finishedlapsbytag[tagid]);
+                objectListView2.AutoResizeColumns();
             }
-        }
-
-        private void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            if (comboBox1.SelectedValue.GetType() == typeof(String))
-            {
-                String test = comboBox1.SelectedValue.ToString();
-                string ugh = "fgfgfg";
-                objectListView2.SetObjects(finishedlapsbytag[comboBox1.SelectedValue.ToString()]);
-
-            }
-
         }
     }
     class Tag
