@@ -18,6 +18,8 @@ namespace Laptimer1
     public partial class Form1 : Form
     {
         RFIDReader rfid3;
+        TriggerInfo triggerInfo;
+
         Dictionary<String, Tag> tagsdict;
 
         Dictionary<String, Lap> openlapsbytag;
@@ -27,6 +29,7 @@ namespace Laptimer1
 
         private UpdateRead UpdateReadHandler = null;
 
+
         public Form1()
         {
             InitializeComponent();
@@ -34,39 +37,7 @@ namespace Laptimer1
 
         private void Form1_Load(object sender, EventArgs e)
         {
-            string hostname = "192.168.178.100";
 
-
-            UpdateReadHandler = new UpdateRead(myUpdateRead);
-
-            rfid3 = new RFIDReader(hostname, 5084, 2000);
-
-            tagsdict = new Dictionary<String, Tag>();
-            openlapsbytag = new Dictionary<string, Lap>();
-            finishedlapsbytag = new Dictionary<string, List<Lap>>();
-
-            rfid3.Connect();
-            toolStripStatusLabel1.Text = String.Format("FirwareVersion={0}", rfid3.ReaderCapabilities.FirwareVersion);
-
-
-            TriggerInfo triggerInfo = new TriggerInfo();
-            triggerInfo.EnableTagEventReport = true;
-            triggerInfo.TagEventReportInfo.ReportNewTagEvent = TAG_EVENT_REPORT_TRIGGER.MODERATED;
-            triggerInfo.TagEventReportInfo.ReportTagInvisibleEvent = TAG_EVENT_REPORT_TRIGGER.MODERATED;
-            triggerInfo.TagEventReportInfo.ReportTagBackToVisibilityEvent = TAG_EVENT_REPORT_TRIGGER.MODERATED;
-            triggerInfo.TagEventReportInfo.NewTagEventModeratedTimeoutMilliseconds = 200;
-            triggerInfo.TagEventReportInfo.TagInvisibleEventModeratedTimeoutMilliseconds = 3000;
-            triggerInfo.TagEventReportInfo.TagBackToVisibilityModeratedTimeoutMilliseconds = 200;
-
-            // registering for read tag data notification
-
-            rfid3.Events.ReadNotify += new Events.ReadNotifyHandler(Events_ReadNotify);
-
-            // ReadNotify Event comes without tag data 
-
-            rfid3.Events.AttachTagDataWithReadEvent = true;
-
-            rfid3.Actions.Inventory.Perform(null, triggerInfo, null);
 
         }
         private delegate void Update();
@@ -91,22 +62,22 @@ namespace Laptimer1
                 }
                 if (eventData.TagData.TagEvent == TAG_EVENT.NEW_TAG_VISIBLE || eventData.TagData.TagEvent == TAG_EVENT.TAG_BACK_TO_VISIBILITY)
                 {
-                    if (checkBox1.Checked)
-                    {
-                        var json = JsonConvert.SerializeObject(tmptag);
-                        var data = new StringContent(json, Encoding.UTF8, "application/json");
+                    //if (checkBox1.Checked)
+                    //{
+                    //    var json = JsonConvert.SerializeObject(tmptag);
+                    //    var data = new StringContent(json, Encoding.UTF8, "application/json");
 
-                        var url = textBox_laptimeService.Text + "/lap/" + tmptag.TagId;
-                        var client = new HttpClient();
+                    //    var url = textBox_laptimeService.Text + "/laps/" + tmptag.TagId;
+                    //    var client = new HttpClient();
 
-                        var response = await client.PostAsync(url, data);
-                        var result = await response.Content.ReadAsStringAsync();
-                    }
+                    //    var response = await client.PostAsync(url, data);
+                    //    var result = await response.Content.ReadAsStringAsync();
+                    //}
 
                     if (openlapsbytag.ContainsKey(tmptag.TagId))
                     {
                         Lap tmplap = openlapsbytag[tmptag.TagId];
-                        tmplap.end = tmptag.TagSeenTime;
+                        tmplap.finished = tmptag.TagSeenTime;
                         if (!finishedlapsbytag.ContainsKey(tmplap.tagId))
                         {
                             List<Lap> newlaplist = new List<Lap>();
@@ -116,6 +87,12 @@ namespace Laptimer1
                         else
                         {
                             finishedlapsbytag[tmplap.tagId].Add(tmplap);
+                            if (checkBox1.Checked)
+                            {
+                                sendLapToOLS(tmplap);
+
+                            }
+
                         }
                         openlapsbytag.Remove(tmplap.tagId);
 
@@ -173,7 +150,7 @@ namespace Laptimer1
 
         }
 
-        private void dataListView1_SelectedIndexChanged(object sender, EventArgs e)
+            private void dataListView1_SelectedIndexChanged(object sender, EventArgs e)
         {
             if (dataListView1.SelectedItem != null)
             {
@@ -181,6 +158,117 @@ namespace Laptimer1
                 objectListView2.SetObjects(finishedlapsbytag[tagid]);
                 objectListView2.AutoResizeColumns();
             }
+        }
+
+        private void rfidConnectButton_Click(object sender, EventArgs e)
+        {
+            //string hostname = "192.168.178.100";
+            string hostname = rfidReaderTextBox1.Text;
+
+            UpdateReadHandler = new UpdateRead(myUpdateRead);
+
+            rfid3 = new RFIDReader(hostname, 5084, 2000);
+
+            tagsdict = new Dictionary<String, Tag>();
+            openlapsbytag = new Dictionary<string, Lap>();
+            finishedlapsbytag = new Dictionary<string, List<Lap>>();
+
+            rfid3.Connect();
+            toolStripStatusLabel1.Text = String.Format("FirwareVersion={0}", rfid3.ReaderCapabilities.FirwareVersion);
+
+
+            triggerInfo = new TriggerInfo();
+            triggerInfo.EnableTagEventReport = true;
+            triggerInfo.TagEventReportInfo.ReportNewTagEvent = TAG_EVENT_REPORT_TRIGGER.MODERATED;
+            triggerInfo.TagEventReportInfo.ReportTagInvisibleEvent = TAG_EVENT_REPORT_TRIGGER.MODERATED;
+            triggerInfo.TagEventReportInfo.ReportTagBackToVisibilityEvent = TAG_EVENT_REPORT_TRIGGER.MODERATED;
+            triggerInfo.TagEventReportInfo.NewTagEventModeratedTimeoutMilliseconds = 200;
+            triggerInfo.TagEventReportInfo.TagInvisibleEventModeratedTimeoutMilliseconds = 3000;
+            triggerInfo.TagEventReportInfo.TagBackToVisibilityModeratedTimeoutMilliseconds = 200;
+
+            // registering for read tag data notification
+            rfid3.Events.ReadNotify += new Events.ReadNotifyHandler(Events_ReadNotify);
+            // ReadNotify Event comes without tag data 
+            rfid3.Events.AttachTagDataWithReadEvent = true;
+
+            // Status Events vom Reader
+            rfid3.Events.StatusNotify += Events_StatusNotify;
+            rfid3.Events.NotifyInventoryStartEvent = true;
+            rfid3.Events.NotifyInventoryStopEvent = true;
+
+            //rfid3.Actions.Inventory.Perform(null, triggerInfo, null);
+        }
+
+        private async void sendLapToOLS(Lap completelap)
+        {
+            var settings = new JsonSerializerSettings { DateFormatString = "yyyy-MM-ddTHH:mm:ss.fffZ" };
+            var json = JsonConvert.SerializeObject(completelap, settings);
+            var data = new StringContent(json, Encoding.UTF8, "application/json");
+
+            var url = textBox_laptimeService.Text + "/laps";
+            var client = new HttpClient();
+
+            var response = await client.PostAsync(url, data);
+            var result = await response.Content.ReadAsStringAsync();
+
+        }
+
+        private async void registerTokenOLS(string tokenid)
+        {
+            var newtag = new RegisterTag(tokenid, "manual add...");
+            var json = JsonConvert.SerializeObject(newtag);
+            var data = new StringContent(json, Encoding.UTF8, "application/json");
+
+            var url = textBox_laptimeService.Text + "/tags";
+            var client = new HttpClient();
+
+            var response = await client.PostAsync(url, data);
+            var result = await response.Content.ReadAsStringAsync();
+        }
+
+
+        public void SetInventoryStatus(bool active)
+        {
+            if (InvokeRequired)
+            {
+                this.Invoke(new Action<bool>(SetInventoryStatus), new object[] { active });
+                return;
+            }
+            readerInventoryActiveCheckBox.Checked = active;
+        }
+
+        private void Events_StatusNotify(object sender, Events.StatusEventArgs e)
+        {
+            if (e.StatusEventData.StatusEventType == Symbol.RFID3.Events.STATUS_EVENT_TYPE.INVENTORY_START_EVENT)
+            {
+                SetInventoryStatus(true);
+            }
+            else if (e.StatusEventData.StatusEventType == Symbol.RFID3.Events.STATUS_EVENT_TYPE.INVENTORY_STOP_EVENT)
+            {
+                SetInventoryStatus(false);
+            }
+
+        }
+
+        private void checkBox2_CheckedChanged(object sender, EventArgs e)
+        {
+            if (rfid3.IsConnected)
+            {
+                if (((CheckBox)sender).Checked)
+                {
+                    rfid3.Actions.Inventory.Perform(null, triggerInfo, null);
+                }
+                else
+                {
+                    rfid3.Actions.Inventory.Stop();
+                }
+            }   
+
+        }
+
+        private void tagRegistierenToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            registerTokenOLS(dataListView1.SelectedItem.Text);
         }
     }
     class Tag
@@ -199,20 +287,35 @@ namespace Laptimer1
 
     }
 
+    class RegisterTag
+    {
+        public RegisterTag(string tagid, string description)
+        {
+            this.tagid = tagid;
+            this.description = description;
+
+        }
+
+        public string tagid { get; set; }
+        public string description { get; set; }
+
+
+    }
+
     class Lap
     {
         public Lap(string tagId, DateTime start)
         {
             this.tagId = tagId;
-            this.start = start;
+            this.started = start;
         }
         public string tagId { get; set; }
-        public DateTime start { get; set; }
-        public DateTime end { get; set; }
+        public DateTime started { get; set; }
+        public DateTime finished { get; set; }
 
         public TimeSpan laptime()
         {
-            TimeSpan laptime = this.end - this.start;
+            TimeSpan laptime = this.finished - this.started;
             return laptime;
         }
     }
