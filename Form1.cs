@@ -197,6 +197,7 @@ namespace Laptimer1
             rfid3.Events.NotifyInventoryStopEvent = true;
 
             //rfid3.Actions.Inventory.Perform(null, triggerInfo, null);
+
         }
 
         private async void sendLapToOLS(Lap completelap)
