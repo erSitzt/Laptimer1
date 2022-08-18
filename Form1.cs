@@ -91,11 +91,13 @@ namespace Laptimer1
                     tagsdict.Add(tmptag.TagId, tmptag);
                     saveTagToDB(tmptag);
                 }
+
                 if (eventData.TagData.OpCode == ACCESS_OPERATION_CODE.ACCESS_OPERATION_READ && eventData.TagData.OpStatus == ACCESS_OPERATION_STATUS.ACCESS_SUCCESS)
                 {
                     addlist(String.Format("{0} : {1}", eventData.TagData.MemoryBank.ToString(), eventData.TagData.MemoryBankData));
 
                 }
+
                 if (eventData.TagData.TagEvent == TAG_EVENT.NEW_TAG_VISIBLE || eventData.TagData.TagEvent == TAG_EVENT.TAG_BACK_TO_VISIBILITY)
                 {
                     double tagLastSeenInSeconds = (tmptag.TagSeenTime - tagsdict[tmptag.TagId].TagSeenTime).TotalSeconds;
@@ -140,8 +142,10 @@ namespace Laptimer1
                         openlapsbytag.Add(newlap.tagId, newlap);
                     }
 
-
+                    tagsdict.Remove(tmptag.TagId);
+                    tagsdict.Add(tmptag.TagId, tmptag);
                 }
+
             }
             else
             {
@@ -460,7 +464,7 @@ namespace Laptimer1
         private void button1_Click(object sender, EventArgs e)
         {
             // settings einfach mit id=1 speichern... dumm aber egal
-            Setting settings = new Setting() { id=1, apikey = textBox1.Text };
+            Setting settings = new Setting() { id = 1, apikey = textBox1.Text };
             using (var db = new LiteDatabase(connstr))
             {
                 var settingsCollection = db.GetCollection<Setting>("settings");
