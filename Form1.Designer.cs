@@ -50,6 +50,7 @@ namespace Laptimer1
             this.readerInventoryActiveCheckBox = new System.Windows.Forms.CheckBox();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
             this.groupBox2 = new System.Windows.Forms.GroupBox();
+            this.button1 = new System.Windows.Forms.Button();
             this.textBox1 = new System.Windows.Forms.TextBox();
             this.label3 = new System.Windows.Forms.Label();
             this.label4 = new System.Windows.Forms.Label();
@@ -58,7 +59,9 @@ namespace Laptimer1
             this.lastseentime = ((BrightIdeasSoftware.OLVColumn)(new BrightIdeasSoftware.OLVColumn()));
             this.groupBox3 = new System.Windows.Forms.GroupBox();
             this.resetDatabaseButton = new System.Windows.Forms.Button();
-            this.button1 = new System.Windows.Forms.Button();
+            this.fastObjectListView1 = new BrightIdeasSoftware.FastObjectListView();
+            this.olvColumn1 = ((BrightIdeasSoftware.OLVColumn)(new BrightIdeasSoftware.OLVColumn()));
+            this.olvColumn2 = ((BrightIdeasSoftware.OLVColumn)(new BrightIdeasSoftware.OLVColumn()));
             this.statusStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.objectListView2)).BeginInit();
             this.contextMenuStrip1.SuspendLayout();
@@ -66,6 +69,7 @@ namespace Laptimer1
             this.groupBox2.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.objectListView1)).BeginInit();
             this.groupBox3.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.fastObjectListView1)).BeginInit();
             this.SuspendLayout();
             // 
             // listBox2
@@ -138,7 +142,7 @@ namespace Laptimer1
             this.objectListView2.HideSelection = false;
             this.objectListView2.Location = new System.Drawing.Point(631, 12);
             this.objectListView2.Name = "objectListView2";
-            this.objectListView2.Size = new System.Drawing.Size(913, 781);
+            this.objectListView2.Size = new System.Drawing.Size(913, 665);
             this.objectListView2.TabIndex = 9;
             this.objectListView2.UseCompatibleStateImageBehavior = false;
             this.objectListView2.View = System.Windows.Forms.View.Details;
@@ -201,9 +205,9 @@ namespace Laptimer1
             // 
             // rfidConnectButton
             // 
-            this.rfidConnectButton.Location = new System.Drawing.Point(254, 31);
+            this.rfidConnectButton.Location = new System.Drawing.Point(254, 25);
             this.rfidConnectButton.Name = "rfidConnectButton";
-            this.rfidConnectButton.Size = new System.Drawing.Size(109, 27);
+            this.rfidConnectButton.Size = new System.Drawing.Size(122, 41);
             this.rfidConnectButton.TabIndex = 13;
             this.rfidConnectButton.Text = "Connect";
             this.rfidConnectButton.UseVisualStyleBackColor = true;
@@ -258,6 +262,16 @@ namespace Laptimer1
             this.groupBox2.TabIndex = 17;
             this.groupBox2.TabStop = false;
             this.groupBox2.Text = "OpenLapTime Service";
+            // 
+            // button1
+            // 
+            this.button1.Location = new System.Drawing.Point(466, 90);
+            this.button1.Name = "button1";
+            this.button1.Size = new System.Drawing.Size(75, 41);
+            this.button1.TabIndex = 10;
+            this.button1.Text = "Save";
+            this.button1.UseVisualStyleBackColor = true;
+            this.button1.Click += new System.EventHandler(this.button1_Click);
             // 
             // textBox1
             // 
@@ -331,29 +345,48 @@ namespace Laptimer1
             // 
             // resetDatabaseButton
             // 
-            this.resetDatabaseButton.Location = new System.Drawing.Point(6, 31);
+            this.resetDatabaseButton.Location = new System.Drawing.Point(6, 25);
             this.resetDatabaseButton.Name = "resetDatabaseButton";
-            this.resetDatabaseButton.Size = new System.Drawing.Size(170, 27);
+            this.resetDatabaseButton.Size = new System.Drawing.Size(170, 41);
             this.resetDatabaseButton.TabIndex = 0;
             this.resetDatabaseButton.Text = "Reset Database";
             this.resetDatabaseButton.UseVisualStyleBackColor = true;
             this.resetDatabaseButton.Click += new System.EventHandler(this.resetDatabaseButton_Click);
             // 
-            // button1
+            // fastObjectListView1
             // 
-            this.button1.Location = new System.Drawing.Point(467, 97);
-            this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(75, 26);
-            this.button1.TabIndex = 10;
-            this.button1.Text = "Save";
-            this.button1.UseVisualStyleBackColor = true;
-            this.button1.Click += new System.EventHandler(this.button1_Click);
+            this.fastObjectListView1.AllColumns.Add(this.olvColumn1);
+            this.fastObjectListView1.AllColumns.Add(this.olvColumn2);
+            this.fastObjectListView1.CellEditUseWholeCell = false;
+            this.fastObjectListView1.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
+            this.olvColumn1,
+            this.olvColumn2});
+            this.fastObjectListView1.HideSelection = false;
+            this.fastObjectListView1.Location = new System.Drawing.Point(632, 683);
+            this.fastObjectListView1.Name = "fastObjectListView1";
+            this.fastObjectListView1.ShowGroups = false;
+            this.fastObjectListView1.Size = new System.Drawing.Size(912, 110);
+            this.fastObjectListView1.TabIndex = 20;
+            this.fastObjectListView1.UseCompatibleStateImageBehavior = false;
+            this.fastObjectListView1.View = System.Windows.Forms.View.Details;
+            this.fastObjectListView1.VirtualMode = true;
+            // 
+            // olvColumn1
+            // 
+            this.olvColumn1.AspectName = "Id";
+            this.olvColumn1.Text = "TagID";
+            // 
+            // olvColumn2
+            // 
+            this.olvColumn2.AspectName = "started";
+            this.olvColumn2.Text = "Startzeit";
             // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1556, 1308);
+            this.Controls.Add(this.fastObjectListView1);
             this.Controls.Add(this.groupBox3);
             this.Controls.Add(this.objectListView1);
             this.Controls.Add(this.groupBox2);
@@ -362,7 +395,7 @@ namespace Laptimer1
             this.Controls.Add(this.statusStrip1);
             this.Controls.Add(this.listBox2);
             this.Name = "Form1";
-            this.Text = "Form1";
+            this.Text = "OpenLapTime";
             this.Load += new System.EventHandler(this.Form1_Load);
             this.statusStrip1.ResumeLayout(false);
             this.statusStrip1.PerformLayout();
@@ -374,6 +407,7 @@ namespace Laptimer1
             this.groupBox2.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.objectListView1)).EndInit();
             this.groupBox3.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.fastObjectListView1)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -409,6 +443,9 @@ namespace Laptimer1
         private System.Windows.Forms.GroupBox groupBox3;
         private System.Windows.Forms.Button resetDatabaseButton;
         private System.Windows.Forms.Button button1;
+        private BrightIdeasSoftware.FastObjectListView fastObjectListView1;
+        private BrightIdeasSoftware.OLVColumn olvColumn1;
+        private BrightIdeasSoftware.OLVColumn olvColumn2;
     }
 }
 

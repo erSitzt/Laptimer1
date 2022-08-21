@@ -29,6 +29,7 @@ namespace Laptimer1
 
         ConnectionString connstr;
         ILiteCollection<Lap> lapsCollection;
+        ILiteCollection<UnfinishedLap> unfinishedLapsCollection;
         ILiteCollection<Tag> tagsCollection;
 
         private RadioButton[] antennas = new RadioButton[10];
@@ -102,44 +103,49 @@ namespace Laptimer1
                 {
                     double tagLastSeenInSeconds = (tmptag.TagSeenTime - tagsdict[tmptag.TagId].TagSeenTime).TotalSeconds;
                     addlist(String.Format("TagID : {0} last seen {1:F2} seconds ago", eventData.TagData.TagID, tagLastSeenInSeconds));
-
-                    if (openlapsbytag.ContainsKey(tmptag.TagId))
+                    var openlap = getUnfinishedLapByTagidFromDB(tmptag.TagId);
+                    var openlap2 = getOpenLapFromDB(tmptag.TagId);
+                    // @TODO: offene lap aus db nutzen...
+                    //if (openlapsbytag.ContainsKey(tmptag.TagId))
+                    if (openlap2 != null)
                     {
                         if (tagLastSeenInSeconds > 10.0)
                         {
-                            Lap tmplap = openlapsbytag[tmptag.TagId];
-                            tmplap.finished = tmptag.TagSeenTime;
-                            if (!finishedlapsbytag.ContainsKey(tmplap.tagId))
-                            {
-                                List<Lap> newlaplist = new List<Lap>();
-                                newlaplist.Add(tmplap);
-                                finishedlapsbytag.Add(tmplap.tagId, newlaplist);
-                                saveLapToDB(tmplap);
-                            }
-                            else
-                            {
-                                finishedlapsbytag[tmplap.tagId].Add(tmplap);
-                                saveLapToDB(tmplap);
-                                if (checkBox1.Checked)
-                                {
-                                    sendLapToOLS(tmplap);
-                                }
+                            openlap2.finished = tmptag.TagSeenTime;
+                            openlap2.isCompleted = true;
 
+                            saveCompletedLapToDB(openlap2);
+                            if (checkBox1.Checked)
+                            {
+                                sendLapToOLS(openlap2);
                             }
-                            openlapsbytag.Remove(tmplap.tagId);
+
+                            // add new open Lap 
+                            saveLapToDB(new Lap() { tagId = tmptag.TagId, started = tmptag.TagSeenTime });
+                            saveUnfinishedLapToDB(new UnfinishedLap()
+                            {
+                                Id = tmptag.TagId,
+                                started = tmptag.TagSeenTime
+                            });
 
                             objectListView1.SetObjects(getTagsFromDB());
                             objectListView1.AutoResizeColumns();
                         }
                     }
-                    if (!openlapsbytag.ContainsKey(tmptag.TagId))
+                    if (openlap2 == null)
                     {
+                        // should only run on first detection of tag
                         Lap newlap = new Lap()
                         {
                             tagId = tmptag.TagId,
                             started = tmptag.TagSeenTime
                         };
-                        openlapsbytag.Add(newlap.tagId, newlap);
+                        saveLapToDB(newlap);
+                        saveUnfinishedLapToDB(new UnfinishedLap()
+                        {
+                            Id = tmptag.TagId,
+                            started = tmptag.TagSeenTime
+                        });
                     }
 
                     tagsdict.Remove(tmptag.TagId);
@@ -215,19 +221,18 @@ namespace Laptimer1
 
 
 
-        private List<Lap> getLapsFromDB()
+        private Lap getOpenLapFromDB(string tagid)
         {
-            List<Lap> laps = new List<Lap>();
+            Lap lap;
             using (var db = new LiteDatabase(connstr))
             {
                 // Get customer collection
                 lapsCollection = db.GetCollection<Lap>("laps");
-                var lapsList = lapsCollection.FindAll().ToList();
-                laps = lapsList.ToList<Lap>();
-
+                lap = lapsCollection.FindOne(x => x.tagId == tagid && x.isCompleted == false);
+                var res = lapsCollection.Query().Where(x => x.tagId == tagid && x.isCompleted == false);
 
             }
-            return laps;
+            return lap;
 
         }
 
@@ -239,10 +244,46 @@ namespace Laptimer1
             {
                 // Get customer collection
                 lapsCollection = db.GetCollection<Lap>("laps");
-                var lapsList = lapsCollection.Find(x => x.tagId == tagid).ToList();
+                var lapsList = lapsCollection.Find(x => x.tagId == tagid && x.isCompleted == true).ToList();
                 laps = lapsList.ToList<Lap>();
             }
             return laps;
+
+        }
+
+        private void saveCompletedLapToDB(Lap lap)
+        {
+            using (var db = new LiteDatabase(connstr))
+            {
+                lapsCollection = db.GetCollection<Lap>("laps");
+                lapsCollection.Update(lap);
+            }
+            addlist(String.Format("Completed Lap for : {0} saved to DB", lap.tagId));
+
+        }
+
+        private void saveUnfinishedLapToDB(UnfinishedLap lap)
+        {
+            using (var db = new LiteDatabase(connstr))
+            {
+                unfinishedLapsCollection = db.GetCollection<UnfinishedLap>("unfinishedlaps");
+                unfinishedLapsCollection.Upsert(lap);
+            }
+            addlist(String.Format("Unfinished Lap for : {0} saved to DB", lap.Id));
+
+        }
+        private UnfinishedLap getUnfinishedLapByTagidFromDB(string tagid)
+        {
+            addlist(String.Format("Getting unfinished Lap for : {0} from DB", tagid));
+            UnfinishedLap lap;
+            using (var db = new LiteDatabase(connstr))
+            {
+                // Get customer collection
+                unfinishedLapsCollection = db.GetCollection<UnfinishedLap>("unfinishedlaps");
+                lap = unfinishedLapsCollection.FindOne(x => x.Id == tagid);
+
+            }
+            return lap;
 
         }
 
@@ -423,6 +464,16 @@ namespace Laptimer1
                 var tagid = objectListView1.SelectedItem.Text;
                 objectListView2.SetObjects(getLapsByTagidFromDB(tagid));
                 objectListView2.AutoResizeColumns();
+                List<UnfinishedLap> tmplist = new List<UnfinishedLap>();
+                UnfinishedLap ulap = getUnfinishedLapByTagidFromDB(tagid);
+                if (ulap != null)
+                {
+                    tmplist.Add(ulap);
+                    fastObjectListView1.SetObjects(tmplist);
+                    fastObjectListView1.AutoResizeColumns();
+                }
+
+
             }
 
         }
@@ -506,11 +557,23 @@ namespace Laptimer1
 
     }
 
+    class UnfinishedLap
+    {
+
+        public string Id { get; set; }
+        public DateTime started { get; set; }
+        public DateTime finished { get; set; }
+
+    }
+
     class Lap
     {
+        public int Id { get; set; }
         public string tagId { get; set; }
         public DateTime started { get; set; }
         public DateTime finished { get; set; }
+
+        public bool isCompleted { get; set; }
 
         public TimeSpan laptime()
         {
