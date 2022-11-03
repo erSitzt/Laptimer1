@@ -43,6 +43,8 @@ namespace Laptimer1
             this.olvColumn7 = ((BrightIdeasSoftware.OLVColumn)(new BrightIdeasSoftware.OLVColumn()));
             this.contextMenuStrip1 = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.tagRegistierenToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.lapsÜbertragenToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.alleTagsRegistrierenToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.rfidReaderTextBox1 = new System.Windows.Forms.TextBox();
             this.label2 = new System.Windows.Forms.Label();
             this.rfidConnectButton = new System.Windows.Forms.Button();
@@ -56,12 +58,22 @@ namespace Laptimer1
             this.label4 = new System.Windows.Forms.Label();
             this.objectListView1 = new BrightIdeasSoftware.ObjectListView();
             this.tagid = ((BrightIdeasSoftware.OLVColumn)(new BrightIdeasSoftware.OLVColumn()));
+            this.lapCount = ((BrightIdeasSoftware.OLVColumn)(new BrightIdeasSoftware.OLVColumn()));
+            this.totalTime = ((BrightIdeasSoftware.OLVColumn)(new BrightIdeasSoftware.OLVColumn()));
             this.lastseentime = ((BrightIdeasSoftware.OLVColumn)(new BrightIdeasSoftware.OLVColumn()));
             this.groupBox3 = new System.Windows.Forms.GroupBox();
+            this.button2 = new System.Windows.Forms.Button();
             this.resetDatabaseButton = new System.Windows.Forms.Button();
             this.fastObjectListView1 = new BrightIdeasSoftware.FastObjectListView();
             this.olvColumn1 = ((BrightIdeasSoftware.OLVColumn)(new BrightIdeasSoftware.OLVColumn()));
             this.olvColumn2 = ((BrightIdeasSoftware.OLVColumn)(new BrightIdeasSoftware.OLVColumn()));
+            this.groupBox4 = new System.Windows.Forms.GroupBox();
+            this.numericUpDown1 = new System.Windows.Forms.NumericUpDown();
+            this.label5 = new System.Windows.Forms.Label();
+            this.pictureBox1 = new System.Windows.Forms.PictureBox();
+            this.menuStrip1 = new System.Windows.Forms.MenuStrip();
+            this.toolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
+            this.lapsFürAusgewTagsÜbertragenToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.statusStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.objectListView2)).BeginInit();
             this.contextMenuStrip1.SuspendLayout();
@@ -70,6 +82,10 @@ namespace Laptimer1
             ((System.ComponentModel.ISupportInitialize)(this.objectListView1)).BeginInit();
             this.groupBox3.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.fastObjectListView1)).BeginInit();
+            this.groupBox4.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.numericUpDown1)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
+            this.menuStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
             // listBox2
@@ -140,9 +156,9 @@ namespace Laptimer1
             this.olvColumn7});
             this.objectListView2.Cursor = System.Windows.Forms.Cursors.Default;
             this.objectListView2.HideSelection = false;
-            this.objectListView2.Location = new System.Drawing.Point(631, 12);
+            this.objectListView2.Location = new System.Drawing.Point(631, 36);
             this.objectListView2.Name = "objectListView2";
-            this.objectListView2.Size = new System.Drawing.Size(913, 665);
+            this.objectListView2.Size = new System.Drawing.Size(913, 596);
             this.objectListView2.TabIndex = 9;
             this.objectListView2.UseCompatibleStateImageBehavior = false;
             this.objectListView2.View = System.Windows.Forms.View.Details;
@@ -175,16 +191,33 @@ namespace Laptimer1
             // 
             this.contextMenuStrip1.ImageScalingSize = new System.Drawing.Size(24, 24);
             this.contextMenuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.tagRegistierenToolStripMenuItem});
+            this.tagRegistierenToolStripMenuItem,
+            this.lapsÜbertragenToolStripMenuItem,
+            this.alleTagsRegistrierenToolStripMenuItem,
+            this.lapsFürAusgewTagsÜbertragenToolStripMenuItem});
             this.contextMenuStrip1.Name = "contextMenuStrip1";
-            this.contextMenuStrip1.Size = new System.Drawing.Size(199, 36);
+            this.contextMenuStrip1.Size = new System.Drawing.Size(349, 165);
             // 
             // tagRegistierenToolStripMenuItem
             // 
             this.tagRegistierenToolStripMenuItem.Name = "tagRegistierenToolStripMenuItem";
-            this.tagRegistierenToolStripMenuItem.Size = new System.Drawing.Size(198, 32);
+            this.tagRegistierenToolStripMenuItem.Size = new System.Drawing.Size(348, 32);
             this.tagRegistierenToolStripMenuItem.Text = "Tag registieren";
             this.tagRegistierenToolStripMenuItem.Click += new System.EventHandler(this.tagRegistierenToolStripMenuItem_Click);
+            // 
+            // lapsÜbertragenToolStripMenuItem
+            // 
+            this.lapsÜbertragenToolStripMenuItem.Name = "lapsÜbertragenToolStripMenuItem";
+            this.lapsÜbertragenToolStripMenuItem.Size = new System.Drawing.Size(348, 32);
+            this.lapsÜbertragenToolStripMenuItem.Text = "Laps übertragen";
+            this.lapsÜbertragenToolStripMenuItem.Click += new System.EventHandler(this.lapsÜbertragenToolStripMenuItem_Click);
+            // 
+            // alleTagsRegistrierenToolStripMenuItem
+            // 
+            this.alleTagsRegistrierenToolStripMenuItem.Name = "alleTagsRegistrierenToolStripMenuItem";
+            this.alleTagsRegistrierenToolStripMenuItem.Size = new System.Drawing.Size(348, 32);
+            this.alleTagsRegistrierenToolStripMenuItem.Text = "Ausgewählte Tags registrieren";
+            this.alleTagsRegistrierenToolStripMenuItem.Click += new System.EventHandler(this.alleTagsRegistrierenToolStripMenuItem_Click);
             // 
             // rfidReaderTextBox1
             // 
@@ -242,7 +275,7 @@ namespace Laptimer1
             this.groupBox1.Controls.Add(this.rfidConnectButton);
             this.groupBox1.Location = new System.Drawing.Point(12, 1118);
             this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(407, 155);
+            this.groupBox1.Size = new System.Drawing.Size(384, 155);
             this.groupBox1.TabIndex = 16;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "RFID Reader";
@@ -256,9 +289,9 @@ namespace Laptimer1
             this.groupBox2.Controls.Add(this.label1);
             this.groupBox2.Controls.Add(this.textBox_laptimeService);
             this.groupBox2.Controls.Add(this.checkBox1);
-            this.groupBox2.Location = new System.Drawing.Point(817, 1118);
+            this.groupBox2.Location = new System.Drawing.Point(953, 1118);
             this.groupBox2.Name = "groupBox2";
-            this.groupBox2.Size = new System.Drawing.Size(727, 155);
+            this.groupBox2.Size = new System.Drawing.Size(591, 155);
             this.groupBox2.TabIndex = 17;
             this.groupBox2.TabStop = false;
             this.groupBox2.Text = "OpenLapTime Service";
@@ -301,18 +334,22 @@ namespace Laptimer1
             // objectListView1
             // 
             this.objectListView1.AllColumns.Add(this.tagid);
+            this.objectListView1.AllColumns.Add(this.lapCount);
+            this.objectListView1.AllColumns.Add(this.totalTime);
             this.objectListView1.AllColumns.Add(this.lastseentime);
             this.objectListView1.CellEditUseWholeCell = false;
             this.objectListView1.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
             this.tagid,
+            this.lapCount,
+            this.totalTime,
             this.lastseentime});
             this.objectListView1.ContextMenuStrip = this.contextMenuStrip1;
             this.objectListView1.Cursor = System.Windows.Forms.Cursors.Default;
             this.objectListView1.HideSelection = false;
-            this.objectListView1.Location = new System.Drawing.Point(22, 12);
+            this.objectListView1.Location = new System.Drawing.Point(12, 36);
             this.objectListView1.Name = "objectListView1";
             this.objectListView1.ShowGroups = false;
-            this.objectListView1.Size = new System.Drawing.Size(603, 781);
+            this.objectListView1.Size = new System.Drawing.Size(613, 757);
             this.objectListView1.TabIndex = 18;
             this.objectListView1.UseCellFormatEvents = true;
             this.objectListView1.UseCompatibleStateImageBehavior = false;
@@ -327,6 +364,16 @@ namespace Laptimer1
             this.tagid.Groupable = false;
             this.tagid.Text = "TagId";
             // 
+            // lapCount
+            // 
+            this.lapCount.AspectName = "lapCount";
+            this.lapCount.Text = "Laps";
+            // 
+            // totalTime
+            // 
+            this.totalTime.AspectName = "totalTime";
+            this.totalTime.Text = "TotalTime";
+            // 
             // lastseentime
             // 
             this.lastseentime.AspectName = "TagSeenTime";
@@ -335,13 +382,24 @@ namespace Laptimer1
             // 
             // groupBox3
             // 
+            this.groupBox3.Controls.Add(this.button2);
             this.groupBox3.Controls.Add(this.resetDatabaseButton);
-            this.groupBox3.Location = new System.Drawing.Point(425, 1118);
+            this.groupBox3.Location = new System.Drawing.Point(402, 1118);
             this.groupBox3.Name = "groupBox3";
-            this.groupBox3.Size = new System.Drawing.Size(386, 155);
+            this.groupBox3.Size = new System.Drawing.Size(183, 155);
             this.groupBox3.TabIndex = 19;
             this.groupBox3.TabStop = false;
             this.groupBox3.Text = "Database";
+            // 
+            // button2
+            // 
+            this.button2.Location = new System.Drawing.Point(7, 73);
+            this.button2.Name = "button2";
+            this.button2.Size = new System.Drawing.Size(169, 32);
+            this.button2.TabIndex = 1;
+            this.button2.Text = "Send all Laps";
+            this.button2.UseVisualStyleBackColor = true;
+            this.button2.Click += new System.EventHandler(this.button2_Click);
             // 
             // resetDatabaseButton
             // 
@@ -362,10 +420,10 @@ namespace Laptimer1
             this.olvColumn1,
             this.olvColumn2});
             this.fastObjectListView1.HideSelection = false;
-            this.fastObjectListView1.Location = new System.Drawing.Point(632, 683);
+            this.fastObjectListView1.Location = new System.Drawing.Point(632, 638);
             this.fastObjectListView1.Name = "fastObjectListView1";
             this.fastObjectListView1.ShowGroups = false;
-            this.fastObjectListView1.Size = new System.Drawing.Size(912, 110);
+            this.fastObjectListView1.Size = new System.Drawing.Size(449, 155);
             this.fastObjectListView1.TabIndex = 20;
             this.fastObjectListView1.UseCompatibleStateImageBehavior = false;
             this.fastObjectListView1.View = System.Windows.Forms.View.Details;
@@ -381,11 +439,80 @@ namespace Laptimer1
             this.olvColumn2.AspectName = "started";
             this.olvColumn2.Text = "Startzeit";
             // 
+            // groupBox4
+            // 
+            this.groupBox4.Controls.Add(this.numericUpDown1);
+            this.groupBox4.Controls.Add(this.label5);
+            this.groupBox4.Location = new System.Drawing.Point(591, 1118);
+            this.groupBox4.Name = "groupBox4";
+            this.groupBox4.Size = new System.Drawing.Size(356, 155);
+            this.groupBox4.TabIndex = 21;
+            this.groupBox4.TabStop = false;
+            this.groupBox4.Text = "Settings";
+            // 
+            // numericUpDown1
+            // 
+            this.numericUpDown1.Location = new System.Drawing.Point(188, 31);
+            this.numericUpDown1.Name = "numericUpDown1";
+            this.numericUpDown1.Size = new System.Drawing.Size(120, 26);
+            this.numericUpDown1.TabIndex = 1;
+            this.numericUpDown1.Value = new decimal(new int[] {
+            1,
+            0,
+            0,
+            0});
+            this.numericUpDown1.ValueChanged += new System.EventHandler(this.numericUpDown1_ValueChanged);
+            // 
+            // label5
+            // 
+            this.label5.AutoSize = true;
+            this.label5.Location = new System.Drawing.Point(6, 35);
+            this.label5.Name = "label5";
+            this.label5.Size = new System.Drawing.Size(175, 20);
+            this.label5.TabIndex = 0;
+            this.label5.Text = "Min. Laptime in Minutes";
+            // 
+            // pictureBox1
+            // 
+            this.pictureBox1.Location = new System.Drawing.Point(1088, 638);
+            this.pictureBox1.Name = "pictureBox1";
+            this.pictureBox1.Size = new System.Drawing.Size(456, 155);
+            this.pictureBox1.SizeMode = System.Windows.Forms.PictureBoxSizeMode.CenterImage;
+            this.pictureBox1.TabIndex = 22;
+            this.pictureBox1.TabStop = false;
+            // 
+            // menuStrip1
+            // 
+            this.menuStrip1.GripMargin = new System.Windows.Forms.Padding(2, 2, 0, 2);
+            this.menuStrip1.ImageScalingSize = new System.Drawing.Size(24, 24);
+            this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.toolStripMenuItem1});
+            this.menuStrip1.Location = new System.Drawing.Point(0, 0);
+            this.menuStrip1.Name = "menuStrip1";
+            this.menuStrip1.Size = new System.Drawing.Size(1556, 33);
+            this.menuStrip1.TabIndex = 23;
+            this.menuStrip1.Text = "menuStrip1";
+            // 
+            // toolStripMenuItem1
+            // 
+            this.toolStripMenuItem1.Name = "toolStripMenuItem1";
+            this.toolStripMenuItem1.Size = new System.Drawing.Size(187, 29);
+            this.toolStripMenuItem1.Text = "toolStripMenuItem1";
+            // 
+            // lapsFürAusgewTagsÜbertragenToolStripMenuItem
+            // 
+            this.lapsFürAusgewTagsÜbertragenToolStripMenuItem.Name = "lapsFürAusgewTagsÜbertragenToolStripMenuItem";
+            this.lapsFürAusgewTagsÜbertragenToolStripMenuItem.Size = new System.Drawing.Size(348, 32);
+            this.lapsFürAusgewTagsÜbertragenToolStripMenuItem.Text = "Laps für ausgew. Tags übertragen";
+            this.lapsFürAusgewTagsÜbertragenToolStripMenuItem.Click += new System.EventHandler(this.lapsFürAusgewTagsÜbertragenToolStripMenuItem_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1556, 1308);
+            this.Controls.Add(this.pictureBox1);
+            this.Controls.Add(this.groupBox4);
             this.Controls.Add(this.fastObjectListView1);
             this.Controls.Add(this.groupBox3);
             this.Controls.Add(this.objectListView1);
@@ -393,7 +520,9 @@ namespace Laptimer1
             this.Controls.Add(this.groupBox1);
             this.Controls.Add(this.objectListView2);
             this.Controls.Add(this.statusStrip1);
+            this.Controls.Add(this.menuStrip1);
             this.Controls.Add(this.listBox2);
+            this.MainMenuStrip = this.menuStrip1;
             this.Name = "Form1";
             this.Text = "OpenLapTime";
             this.Load += new System.EventHandler(this.Form1_Load);
@@ -408,6 +537,12 @@ namespace Laptimer1
             ((System.ComponentModel.ISupportInitialize)(this.objectListView1)).EndInit();
             this.groupBox3.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.fastObjectListView1)).EndInit();
+            this.groupBox4.ResumeLayout(false);
+            this.groupBox4.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.numericUpDown1)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
+            this.menuStrip1.ResumeLayout(false);
+            this.menuStrip1.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -446,6 +581,18 @@ namespace Laptimer1
         private BrightIdeasSoftware.FastObjectListView fastObjectListView1;
         private BrightIdeasSoftware.OLVColumn olvColumn1;
         private BrightIdeasSoftware.OLVColumn olvColumn2;
+        private System.Windows.Forms.GroupBox groupBox4;
+        private System.Windows.Forms.Label label5;
+        private System.Windows.Forms.NumericUpDown numericUpDown1;
+        private System.Windows.Forms.Button button2;
+        private BrightIdeasSoftware.OLVColumn totalTime;
+        private BrightIdeasSoftware.OLVColumn lapCount;
+        private System.Windows.Forms.PictureBox pictureBox1;
+        private System.Windows.Forms.ToolStripMenuItem lapsÜbertragenToolStripMenuItem;
+        private System.Windows.Forms.MenuStrip menuStrip1;
+        private System.Windows.Forms.ToolStripMenuItem toolStripMenuItem1;
+        private System.Windows.Forms.ToolStripMenuItem alleTagsRegistrierenToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem lapsFürAusgewTagsÜbertragenToolStripMenuItem;
     }
 }
 

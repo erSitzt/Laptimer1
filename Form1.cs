@@ -14,6 +14,7 @@ using Newtonsoft.Json;
 using System.Net.Http;
 using LiteDB;
 using BrightIdeasSoftware;
+using QRCoder;
 
 namespace Laptimer1
 {
@@ -38,6 +39,8 @@ namespace Laptimer1
 
         private HttpClient HttpClient;
 
+        double MinLaptime = 60;
+
 
         public Form1()
         {
@@ -59,7 +62,6 @@ namespace Laptimer1
             };
             objectListView1.SetObjects(getTagsFromDB());
             objectListView1.AutoResizeColumns();
-
 
             HttpClient = new HttpClient();
             HttpClient.DefaultRequestHeaders.Add("X-Api-Key", "Start123");
@@ -109,7 +111,7 @@ namespace Laptimer1
                     //if (openlapsbytag.ContainsKey(tmptag.TagId))
                     if (openlap2 != null)
                     {
-                        if (tagLastSeenInSeconds > 10.0)
+                        if (tagLastSeenInSeconds > MinLaptime)
                         {
                             openlap2.finished = tmptag.TagSeenTime;
                             openlap2.isCompleted = true;
@@ -236,8 +238,9 @@ namespace Laptimer1
 
         }
 
-        private List<Lap> getLapsByTagidFromDB(string tagid)
+        private List<Lap> getLapsByTagidFromDB(Tag tag)
         {
+            string tagid = tag.TagId;
             addlist(String.Format("Getting Laps for : {0} from DB", tagid));
             List<Lap> laps = new List<Lap>();
             using (var db = new LiteDatabase(connstr))
@@ -247,6 +250,9 @@ namespace Laptimer1
                 var lapsList = lapsCollection.Find(x => x.tagId == tagid && x.isCompleted == true).ToList();
                 laps = lapsList.ToList<Lap>();
             }
+            var totalSpan = new TimeSpan(laps.Sum(r => r.laptime().Ticks));
+            tag.totalTime = totalSpan;
+            tag.lapCount = laps.Count;
             return laps;
 
         }
@@ -399,9 +405,23 @@ namespace Laptimer1
 
         }
 
-        private async void registerTokenOLS(string tokenid)
+        private async Task<HttpResponseMessage> sendLapToOLSTask(Lap completelap)
         {
-            var newtag = new RegisterTag(tokenid, "manual add...");
+            var settings = new JsonSerializerSettings { DateFormatString = "yyyy-MM-ddTHH:mm:ss.fffZ" };
+            var json = JsonConvert.SerializeObject(completelap, settings);
+            var data = new StringContent(json, Encoding.UTF8, "application/json");
+
+            var url = textBox_laptimeService.Text + "/laps";
+
+            // @todo try catch
+            var response = await HttpClient.PostAsync(url, data);
+            return response;
+
+        }
+
+        private async void registerTagOLS(string tagid)
+        {
+            var newtag = new RegisterTag(tagid, "manual add...");
             var json = JsonConvert.SerializeObject(newtag);
             var data = new StringContent(json, Encoding.UTF8, "application/json");
 
@@ -410,6 +430,19 @@ namespace Laptimer1
 
             var response = await HttpClient.PostAsync(url, data);
             var result = await response.Content.ReadAsStringAsync();
+        }
+
+        private async Task<HttpResponseMessage> registerTagOLSTask(string tagid)
+        {
+            var newtag = new RegisterTag(tagid, "manual add...");
+            var json = JsonConvert.SerializeObject(newtag);
+            var data = new StringContent(json, Encoding.UTF8, "application/json");
+
+            var url = textBox_laptimeService.Text + "/tags";
+
+
+            var response = await HttpClient.PostAsync(url, data);
+            return response;
         }
 
 
@@ -454,24 +487,34 @@ namespace Laptimer1
 
         private void tagRegistierenToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            registerTokenOLS(objectListView1.SelectedItem.Text);
+            registerTagOLS(objectListView1.SelectedItem.Text);
         }
 
         private void objectListView1_SelectedIndexChanged(object sender, EventArgs e)
         {
             if (objectListView1.SelectedItem != null)
             {
-                var tagid = objectListView1.SelectedItem.Text;
-                objectListView2.SetObjects(getLapsByTagidFromDB(tagid));
+
+
+
+                Tag selectedTag = (Tag)objectListView1.SelectedObject;
+                objectListView2.SetObjects(getLapsByTagidFromDB(selectedTag));
                 objectListView2.AutoResizeColumns();
                 List<UnfinishedLap> tmplist = new List<UnfinishedLap>();
-                UnfinishedLap ulap = getUnfinishedLapByTagidFromDB(tagid);
+                UnfinishedLap ulap = getUnfinishedLapByTagidFromDB(selectedTag.TagId);
                 if (ulap != null)
                 {
                     tmplist.Add(ulap);
                     fastObjectListView1.SetObjects(tmplist);
                     fastObjectListView1.AutoResizeColumns();
                 }
+
+                QRCodeGenerator qrGenerator = new QRCodeGenerator();
+                String url = String.Format("http://openlaptime.de/{0}", selectedTag.TagId);
+                QRCodeData qrCodeData = qrGenerator.CreateQrCode( url, QRCodeGenerator.ECCLevel.Q);
+                QRCode qrCode = new QRCode(qrCodeData);
+                Bitmap qrCodeImage = qrCode.GetGraphic(3);
+                pictureBox1.Image = qrCodeImage;
 
 
             }
@@ -524,6 +567,81 @@ namespace Laptimer1
             addlist(String.Format("Lap for : {0} saved to DB", settings.apikey));
 
         }
+
+        private void numericUpDown1_ValueChanged(object sender, EventArgs e)
+        {
+            MinLaptime = ((double)numericUpDown1.Value);
+            Console.WriteLine(MinLaptime);
+        }
+
+        private void button2_Click(object sender, EventArgs e)
+        {
+            List<Tag> tagsFromDB = getTagsFromDB();
+            
+            foreach (Tag tag in tagsFromDB)
+            {
+                Task<HttpResponseMessage> registerTask = Task.Run<HttpResponseMessage>(async () => await registerTagOLSTask(tag.TagId));
+                String tagRegisterStatusCode = registerTask.Result.StatusCode.ToString();
+                addlist(String.Format("Tag {0} registriert. Status Code : {1}", tag.TagId, tagRegisterStatusCode));
+                //registerTagOLS(tag.TagId);
+                List<Lap> laps = getLapsByTagidFromDB(tag);
+                foreach (Lap lap in laps)
+                {
+                    Task<HttpResponseMessage> sendlapTask = Task.Run<HttpResponseMessage>(async () => await sendLapToOLSTask(lap));
+                    String sendLapStatusCode = sendlapTask.Result.StatusCode.ToString();
+                    //sendLapToOLS(lap);
+                    addlist(String.Format("Lap {0} to {1} - Status Code : {2}", lap.started, lap.finished, sendLapStatusCode));
+                    //sendLapToOLS(lap);
+                    //addlist(String.Format("Lap {0} to {1}", lap.started, lap.finished));
+                }
+            }
+        }
+        private void registerTag(Tag tag)
+        {
+            Task<HttpResponseMessage> registerTask = Task.Run<HttpResponseMessage>(async () => await registerTagOLSTask(tag.TagId));
+            String tagRegisterStatusCode = registerTask.Result.StatusCode.ToString();
+            addlist(String.Format("Tag {0} registriert. Status Code : {1}", tag.TagId, tagRegisterStatusCode));
+        }
+
+        private void sendLap(Lap lap)
+        {
+            Task<HttpResponseMessage> sendlapTask = Task.Run<HttpResponseMessage>(async () => await sendLapToOLSTask(lap));
+            String sendLapStatusCode = sendlapTask.Result.StatusCode.ToString();
+            addlist(String.Format("Lap {0} to {1} - Status Code : {2}", lap.started, lap.finished, sendLapStatusCode));
+        }
+
+        private void lapsÜbertragenToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Tag tag = (Tag)objectListView1.SelectedObject;
+            registerTag(tag);
+
+            foreach (Lap lap in getLapsByTagidFromDB(tag))
+            {
+                sendLap(lap);
+            }
+            
+        }
+
+        private void alleTagsRegistrierenToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            foreach(Tag tag in objectListView1.SelectedObjects)
+            {
+                registerTag(tag);
+            }
+        }
+
+        private void lapsFürAusgewTagsÜbertragenToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            foreach (Tag tag in objectListView1.SelectedObjects)
+            {
+                registerTag(tag);
+                foreach (Lap lap in getLapsByTagidFromDB(tag))
+                {
+                    sendLap(lap);
+                }
+            }
+
+        }
     }
 
     class Setting
@@ -539,6 +657,11 @@ namespace Laptimer1
         public int SeenCount { get; set; }
 
         public DateTime TagSeenTime { get; set; }
+
+        public TimeSpan totalTime { get; set; }
+
+        public int lapCount { get; set; }
+
 
     }
 
