@@ -15,6 +15,8 @@ using System.Net.Http;
 using LiteDB;
 using BrightIdeasSoftware;
 using QRCoder;
+using System.IO;
+using ExcelDataReader;
 
 namespace Laptimer1
 {
@@ -513,7 +515,7 @@ namespace Laptimer1
                 String url = String.Format("http://openlaptime.de/{0}", selectedTag.TagId);
                 QRCodeData qrCodeData = qrGenerator.CreateQrCode( url, QRCodeGenerator.ECCLevel.Q);
                 QRCode qrCode = new QRCode(qrCodeData);
-                Bitmap qrCodeImage = qrCode.GetGraphic(3);
+                Bitmap qrCodeImage = qrCode.GetGraphic(4);
                 pictureBox1.Image = qrCodeImage;
 
 
@@ -641,6 +643,52 @@ namespace Laptimer1
                 }
             }
 
+        }
+
+        private void button3_Click(object sender, EventArgs e)
+        {
+            Tag tmptag = new Tag();
+            tmptag.TagId = "99999";
+            if (!tagsdict.ContainsKey(tmptag.TagId))
+            {
+                tagsdict.Add(tmptag.TagId, tmptag);
+                saveTagToDB(tmptag);
+            }
+        }
+
+        private void button4_Click(object sender, EventArgs e)
+        {
+
+            openFileDialog1.InitialDirectory = "c:\\";
+            openFileDialog1.Filter = "Excel file (*.xlsx)|*.xlsx";
+            openFileDialog1.FileName = "";
+            openFileDialog1.FilterIndex = 1;
+            openFileDialog1.RestoreDirectory = true;
+
+            if (openFileDialog1.ShowDialog() == DialogResult.OK)
+            {
+                string filePath = openFileDialog1.FileName;
+
+                using (var stream = File.Open(filePath, FileMode.Open, FileAccess.Read))
+                {
+                    using (var reader = ExcelReaderFactory.CreateReader(stream))
+                    {
+                        var result = reader.AsDataSet(new ExcelDataSetConfiguration()
+                        {
+                            ConfigureDataTable = (tableReader) => new ExcelDataTableConfiguration()
+                            {
+                                UseHeaderRow = true,
+                                FilterRow = (rowReader) => {
+                                    int progress = (int)Math.Ceiling((decimal)rowReader.Depth / (decimal)rowReader.RowCount * (decimal)100);
+                                    // progress is in the range 0..100
+                                    return true;
+                                }
+                            }
+                        });
+                        dataGridView1.DataSource = result.Tables[0];
+                    }
+                }
+            }
         }
     }
 
