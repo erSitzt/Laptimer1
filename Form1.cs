@@ -17,6 +17,7 @@ using BrightIdeasSoftware;
 using QRCoder;
 using System.IO;
 using ExcelDataReader;
+using static System.Windows.Forms.AxHost;
 
 namespace Laptimer1
 {
@@ -107,7 +108,7 @@ namespace Laptimer1
                 {
                     double tagLastSeenInSeconds = (tmptag.TagSeenTime - tagsdict[tmptag.TagId].TagSeenTime).TotalSeconds;
                     addlist(String.Format("TagID : {0} last seen {1:F2} seconds ago", eventData.TagData.TagID, tagLastSeenInSeconds));
-                    var openlap = getUnfinishedLapByTagidFromDB(tmptag.TagId);
+                    //var openlap = getUnfinishedLapByTagidFromDB(tmptag.TagId);
                     var openlap2 = getOpenLapFromDB(tmptag.TagId);
                     // @TODO: offene lap aus db nutzen...
                     //if (openlapsbytag.ContainsKey(tmptag.TagId))
@@ -126,12 +127,13 @@ namespace Laptimer1
 
                             // add new open Lap 
                             saveLapToDB(new Lap() { tagId = tmptag.TagId, started = tmptag.TagSeenTime });
+                            /*
                             saveUnfinishedLapToDB(new UnfinishedLap()
                             {
                                 Id = tmptag.TagId,
                                 started = tmptag.TagSeenTime
                             });
-
+                            */
                             objectListView1.SetObjects(getTagsFromDB());
                             objectListView1.AutoResizeColumns();
                         }
@@ -145,11 +147,13 @@ namespace Laptimer1
                             started = tmptag.TagSeenTime
                         };
                         saveLapToDB(newlap);
+                        /*
                         saveUnfinishedLapToDB(new UnfinishedLap()
                         {
                             Id = tmptag.TagId,
                             started = tmptag.TagSeenTime
                         });
+                        */
                     }
 
                     tagsdict.Remove(tmptag.TagId);
@@ -379,6 +383,9 @@ namespace Laptimer1
             triggerInfo.TagEventReportInfo.TagInvisibleEventModeratedTimeoutMilliseconds = 3000;
             triggerInfo.TagEventReportInfo.TagBackToVisibilityModeratedTimeoutMilliseconds = 500;
 
+
+
+
             // registering for read tag data notification
             rfid3.Events.ReadNotify += new Events.ReadNotifyHandler(Events_ReadNotify);
             // ReadNotify Event comes without tag data 
@@ -388,6 +395,32 @@ namespace Laptimer1
             rfid3.Events.StatusNotify += Events_StatusNotify;
             rfid3.Events.NotifyInventoryStartEvent = true;
             rfid3.Events.NotifyInventoryStopEvent = true;
+
+            /*
+            // Filter tags based on mask
+            rfid3.Actions.PreFilters.DeleteAll();
+
+            if (textBoxTagMask.Text.Length > 0)
+            {
+                PreFilters.PreFilter filter = new PreFilters.PreFilter();
+                String tagmask = textBoxTagMask.Text;
+                int filterMaskLength = (tagmask.Length / 2);
+                byte[] filterMask = new byte[filterMaskLength];
+                for (int index = 0; index < filterMaskLength; index++)
+                {
+                    filterMask[index] = byte.Parse(tagmask.Substring(index * 2, 2),
+                        System.Globalization.NumberStyles.HexNumber);
+                }
+                filter.AntennaID = 0;// Set this filter for Antenna ID 3
+                filter.TagPattern = filterMask;// Tags which starts with 0x1211
+                filter.TagPatternBitCount = (uint)filterMaskLength * 8;
+                filter.BitOffset = 32; // skip PC bits (always it should be in bit length)
+                filter.MemoryBank = MEMORY_BANK.MEMORY_BANK_EPC;
+                filter.FilterAction = FILTER_ACTION.FILTER_ACTION_STATE_UNAWARE; // use state unaware singulation
+                filter.StateUnawareAction.Action = STATE_UNAWARE_ACTION.STATE_UNAWARE_ACTION_SELECT_NOT_UNSELECT;
+                rfid3.Actions.PreFilters.Add(filter);
+            }
+            */
 
             //rfid3.Actions.Inventory.Perform(null, triggerInfo, null);
 
@@ -477,6 +510,7 @@ namespace Laptimer1
             {
                 if (((CheckBox)sender).Checked)
                 {
+                    setPreFilters();
                     rfid3.Actions.Inventory.Perform(null, triggerInfo, null);
                 }
                 else
@@ -502,8 +536,8 @@ namespace Laptimer1
                 Tag selectedTag = (Tag)objectListView1.SelectedObject;
                 objectListView2.SetObjects(getLapsByTagidFromDB(selectedTag));
                 objectListView2.AutoResizeColumns();
-                List<UnfinishedLap> tmplist = new List<UnfinishedLap>();
-                UnfinishedLap ulap = getUnfinishedLapByTagidFromDB(selectedTag.TagId);
+                List<Lap> tmplist = new List<Lap>();
+                Lap ulap = getOpenLapFromDB(selectedTag.TagId);
                 if (ulap != null)
                 {
                     tmplist.Add(ulap);
@@ -669,7 +703,7 @@ namespace Laptimer1
             {
                 string filePath = openFileDialog1.FileName;
 
-                using (var stream = File.Open(filePath, FileMode.Open, FileAccess.Read))
+                using (var stream = File.Open(filePath, FileMode.Open, FileAccess.Read,FileShare.ReadWrite))
                 {
                     using (var reader = ExcelReaderFactory.CreateReader(stream))
                     {
@@ -690,6 +724,134 @@ namespace Laptimer1
                 }
             }
         }
+
+        private void button5_Click(object sender, EventArgs e)
+        {
+            foreach (DataGridViewRow row in dataGridView1.Rows)
+            {
+                if (row.IsNewRow) continue;
+
+                var tagid = row.Cells["tagid"].Value;
+                var tagname = row.Cells["name"].Value;
+                var tagnummer = row.Cells["startnummer"].Value;
+                Tag tmptag = new Tag();
+                //tmptag.TagId = tagid.ToString().PadLeft(24, '0');
+                tmptag.TagId = tagid.ToString();
+                tmptag.TagName = tagname.ToString();
+
+                if (!tagsdict.ContainsKey(tmptag.TagId))
+                {
+                    tagsdict.Add(tmptag.TagId, tmptag);
+                    saveTagToDB(tmptag);
+                    objectListView1.SetObjects(getTagsFromDB());
+                    objectListView1.AutoResizeColumns();
+                }
+
+
+                //More code here
+            }
+        }
+
+        private void checkBox2_CheckedChanged_1(object sender, EventArgs e)
+        {
+
+            setPreFilters();
+        }
+
+        private void setPreFilters()
+        {
+            if (checkBoxTagFilter.Checked)
+            {
+                // Filter tags based on mask
+                rfid3.Actions.PreFilters.DeleteAll();
+
+                if (textBoxTagMask.Text.Length > 0)
+                {
+                    PreFilters.PreFilter filter = new PreFilters.PreFilter();
+                    String tagmask = textBoxTagMask.Text;
+                    int filterMaskLength = (tagmask.Length / 2);
+                    byte[] filterMask = new byte[filterMaskLength];
+                    for (int index = 0; index < filterMaskLength; index++)
+                    {
+                        filterMask[index] = byte.Parse(tagmask.Substring(index * 2, 2),
+                            System.Globalization.NumberStyles.HexNumber);
+                    }
+                    filter.AntennaID = 0;// Set this filter for Antenna ID 3
+                    filter.TagPattern = filterMask;// Tags which starts with 0x1211
+                    filter.TagPatternBitCount = (uint)filterMaskLength * 8;
+                    filter.BitOffset = 32; // skip PC bits (always it should be in bit length)
+                    filter.MemoryBank = MEMORY_BANK.MEMORY_BANK_EPC;
+                    filter.FilterAction = FILTER_ACTION.FILTER_ACTION_STATE_UNAWARE; // use state unaware singulation
+                    filter.StateUnawareAction.Action = STATE_UNAWARE_ACTION.STATE_UNAWARE_ACTION_SELECT_NOT_UNSELECT;
+                    rfid3.Actions.PreFilters.Add(filter);
+                }
+
+            }
+            else
+            {
+                rfid3.Actions.PreFilters.DeleteAll();
+            }
+        }
+
+        private void startFürAlleTagsToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            foreach (Tag tag in objectListView1.Objects)
+            {
+                saveLapToDB(new Lap()
+                {
+                    tagId = tag.TagId,
+                    started = DateTime.Now,
+                });
+            }
+            /*
+            saveUnfinishedLapToDB(new UnfinishedLap()
+            {
+                Id = tmptag.TagId,
+                started = tmptag.TagSeenTime
+            });
+            */
+
+        }
+
+        private void startFürAusgewählteTagsToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            foreach (Tag tag in objectListView1.SelectedObjects)
+            {
+                saveLapToDB(new Lap()
+                {
+                    tagId = tag.TagId,
+                    started = DateTime.Now,
+                });
+            }
+
+        }
+
+        private void fAKELAPToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            foreach (Tag tag in objectListView1.Objects)
+            {
+                DateTime faketime = DateTime.Now;
+                var openlap2 = getOpenLapFromDB(tag.TagId);
+                // @TODO: offene lap aus db nutzen...
+                //if (openlapsbytag.ContainsKey(tmptag.TagId))
+                if (openlap2 != null)
+                {
+                    openlap2.finished = faketime;
+                    openlap2.isCompleted = true;
+
+                    saveCompletedLapToDB(openlap2);
+
+                    // add new open Lap 
+                    saveLapToDB(new Lap() { tagId = tag.TagId, started = faketime });
+
+
+                    objectListView1.SetObjects(getTagsFromDB());
+                    objectListView1.AutoResizeColumns();
+
+                }
+            }
+
+        }
     }
 
     class Setting
@@ -702,6 +864,9 @@ namespace Laptimer1
     {
 
         public string TagId { get; set; }
+
+        public string TagName { get; set; }
+
         public int SeenCount { get; set; }
 
         public DateTime TagSeenTime { get; set; }
